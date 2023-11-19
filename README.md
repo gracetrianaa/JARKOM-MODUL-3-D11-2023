@@ -434,6 +434,23 @@ subnet 10.27.4.0 netmask 255.255.255.0 {
 service isc-dhcp-server restart
 ```
 
+Pada DHCP Relay (Aura) dilakukan set up dan konfigurasi berikut
+```
+apt-get update
+apt-get install isc-dhcp-relay -y
+service isc-dhcp-relay start
+
+echo ‘SERVERS= “10.27.1.2” 
+INTERFACES= “eth1 eth2 eth3 eth4”
+OPTIONS=’ > /etc/default/isc-dhcp-relay  
+
+# IP DHCP SERVER 
+
+echo ‘net.ipv4.ip_forward=1’ > /etc/sysctl.conf
+
+service isc-dhcp-relay restart
+```
+
 ### Testing nomor 2-5
 Tes untuk nomor 2-5
 
