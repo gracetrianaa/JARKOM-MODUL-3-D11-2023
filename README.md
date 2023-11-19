@@ -692,11 +692,10 @@ Set up `/etc/nginx/sites-available/lb-jarkom` dari nomor sebelumnya kembali ke a
 
 - 3 worker
   
-![Screenshot (164)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/65e3b809-0837-4f2c-8209-197c12f074e2)
+![Screenshot (164)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/fa33a422-f6ae-4524-9909-100e7d88209c)
 > Requests per second : 810.96 [#/sec]
 
-![Screenshot (163)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/8e27b637-9c9d-46a2-b820-ff6780c54e19)
-
+![Screenshot (163)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/a26f67d4-6fc1-4a87-b2aa-253968d65e42)
 
 - 2 worker
   
@@ -710,11 +709,10 @@ echo ‘upstream myweb {
 }
 ```
 
-![Screenshot (162)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/4bf0bc42-f087-4b1b-859f-70f03581bd09)
+![Screenshot (162)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/3d3ca081-18cc-495d-8561-fd40a9eba961)
 > Requests per second : 649.27 [#/sec]
 
-![Screenshot (161)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/5482e6a1-d587-4205-9e78-50f506fad32b)
-
+![Screenshot (161)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/3e4b6252-6c81-4ae1-a67b-27fac29786f5)
 
 - 1 worker
   
@@ -728,10 +726,11 @@ echo ‘upstream myweb {
 }
 ```
 
-![Screenshot (160)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/15788f81-2a70-48fc-b6a0-fb6669466e65)
+![Screenshot (160)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/d9fd5695-808a-4785-a253-6f325272308b)
 > Requests per second : 711.76 [#/sec]
 
-![Screenshot (159)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/ae0ff2be-e8a2-4c1c-bb9c-e118469d049e)
+![Screenshot (159)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/60c84ba2-5d02-4404-a113-24abadb2031b)
+
 
 ### Grafik
 
