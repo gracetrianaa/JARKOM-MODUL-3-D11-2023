@@ -592,8 +592,11 @@ Muncul hasil seperti ini
 
 Karena diminta untuk menuliskan grimoire, buatlah analisis hasil testing dengan 200 request dan 10 request/second masing-masing algoritma Load Balancer dengan ketentuan sebagai berikut:
 > Nama Algoritma Load Balancer
+
 > Report hasil testing pada Apache Benchmark
-> Grafik request per second untuk masing masing algoritma. 
+
+> Grafik request per second untuk masing masing algoritma.
+
 > Analisis
 
 Untuk konfigurasi kurang lebih sama dengan [SOAL 7](#soal-7), hanya melakukan set up pada LB Worker EISEN terlebih dahulu sesuai algoritma yang digunakan. Kemudian, testing di node client dengan command
