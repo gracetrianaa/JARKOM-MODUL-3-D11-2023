@@ -590,3 +590,61 @@ Muncul hasil seperti ini
 
 ## SOAL 8
 
+## SOAL 10
+
+Selanjutnya coba tambahkan konfigurasi autentikasi di LB dengan dengan kombinasi username: “netics” dan password: “ajkyyy”, dengan yyy merupakan kode kelompok. Terakhir simpan file “htpasswd” nya di /etc/nginx/rahasisakita/
+
+ubah konfigurasi pada nginx menjadi seperti ini:
+
+```
+upstream myweb {
+        hash $request_uri consistent;
+        server 10.27.3.1 weight=4;
+        server 10.27.3.2 weight=2;
+        server 10.27.3.3 weight=1;
+}
+
+server {
+        listen 80;
+        server_name granz.channel.d11.com;
+                location / {
+                proxy_pass http://myweb;
+                proxy_set_header    X-Real-IP $remote_addr;
+                proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header    Host $http_host;
+		auth_basic "Administrator's Area";
+                auth_basic_user_file /etc/nginx/rahasiakita/.htpasswd;
+        }
+        error_log /var/log/nginx/lb_error.log;
+access_log /var/log/nginx/lb_access.log;
+}
+```
+
+setelah melakukan konfigurasi jangan lupa buat direktori rahasia kita dan tambahkan password seperti yang di perintahkan soal
+
+```
+mkdir /etc/nginx/rahasiakita
+htpasswd -b -c /etc/nginx/rahasiakita/.htpasswd netics ajkd11
+```
+### Hasil
+
+![10](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/130858750/2b7eec36-4dcd-4e49-b134-05af3c58efdc)
+
+
+## SOAL 11
+
+Lalu buat untuk setiap request yang mengandung /its akan di proxy passing menuju halaman https://www.its.ac.id.
+
+untuk melakukan hal tersebut kita perlu konfigutasi tambahan di nginx kita seperti ini:
+
+```
+       location /its {
+                proxy_pass https://www.its.ac.id;
+
+                allow all;
+        }
+```
+
+### Hasil
+
+![11](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/130858750/f37c02e9-89cb-4094-8868-d46446e27568)
