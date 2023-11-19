@@ -6,7 +6,7 @@
 |Muhammad Rifqi Fadhilah|5025211228|
 
 - [Soal 0](#soal-0)
-  - Configuration
+  - [Configuration](#configuration) 
 - [Soal 1](#soal-1)
 - [Soal 2](#soal-2)
 - [Soal 3](#soal-3)
