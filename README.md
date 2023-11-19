@@ -688,8 +688,9 @@ Dengan menggunakan algoritma Round Robin, lakukan testing dengan menggunakan 3 w
 
 Set up `/etc/nginx/sites-available/lb-jarkom` dari nomor sebelumnya kembali ke algoritma round robin. Testing menggunakan ApacheBench dengan command
 
-`ab -n 100 -c 10 http://granz.channel.d11.com/`
-
+```
+ab -n 100 -c 10 http://granz.channel.d11.com/
+```
 - 3 worker
   
 ![Screenshot (164)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/fa33a422-f6ae-4524-9909-100e7d88209c)
