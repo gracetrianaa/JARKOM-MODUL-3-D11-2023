@@ -1,12 +1,12 @@
 # JARKOM-MODUL-3-D11-2023
 
-# Jarkom-Modul-2-D11-2023
-
 |Nama|NRP|
 |----|---|
 |Gracetriana Survinta Septinaputri|5025211199|
 |Muhammad Rifqi Fadhilah|5025211228|
 
+- [Soal 0](#soal-0)
+  - Configuration
 - [Soal 1](#soal-1)
 - [Soal 2](#soal-2)
 - [Soal 3](#soal-3)
