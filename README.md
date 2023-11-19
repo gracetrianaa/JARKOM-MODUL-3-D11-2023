@@ -590,6 +590,155 @@ Muncul hasil seperti ini
 
 ## SOAL 8
 
+Karena diminta untuk menuliskan grimoire, buatlah analisis hasil testing dengan 200 request dan 10 request/second masing-masing algoritma Load Balancer dengan ketentuan sebagai berikut:
+> Nama Algoritma Load Balancer
+> Report hasil testing pada Apache Benchmark
+> Grafik request per second untuk masing masing algoritma. 
+> Analisis
+
+Untuk konfigurasi kurang lebih sama dengan [SOAL 7](#soal-7), hanya melakukan set up pada LB Worker EISEN terlebih dahulu sesuai algoritma yang digunakan. Kemudian, testing di node client dengan command
+
+```
+ab -n 200 -c 10 http://granz.channel.d11.com/
+```
+
+Jangan lupa untuk command `htop` di tiap worker PHP untuk menunjukkan informasi proses yang berjalan.
+
+### Hasil
+- Round Robin
+
+Set up untuk bagian `upstream myweb` pada `/etc/nginx/sites-available/lb-jarkom` eisen seperti di bawah ini
+
+```
+upstream myweb {
+	server 10.27.3.1 weight=4;
+	server 10.27.3.2 weight=2;
+	server 10.27.3.3 weight=1;
+}
+```
+
+![Screenshot (140)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/705d9709-7ebf-4f8d-9c2e-03eb969cac6c)
+> Requests per second 1907.98 [#/sec]
+
+- Least Connection
+
+Ubah pada `/etc/nginx/sites-available/lb-jarkom` sesuai dengan algoritma ini
+
+```
+upstream myweb {
+	least_conn;
+	server 10.27.3.1 weight=4;
+	server 10.27.3.2 weight=2;
+	server 10.27.3.3 weight=1;
+}
+```
+
+![Screenshot (143)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/f58407bf-53bb-4bbb-aabd-e72c5913f058)
+
+![Screenshot (144)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/93064d77-8560-4c6f-b501-2e72d7d2cf1b)
+
+> Requests per second : 2877.99 [#/sec]
+
+- IP Hash
+
+Set up `/etc/nginx/sites-available/lb-jarkom` sesuai algoritma IP Hash
+
+```
+upstream myweb {
+	ip_hash;
+	server 10.27.3.1 weight=4;
+	server 10.27.3.2 weight=2;
+	server 10.27.3.3 weight=1;
+}
+```
+![Screenshot (148)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/87fa1907-94b9-4edb-bae9-87bf403950a8)
+
+> Requests per second : 2916.51 [#/sec]
+
+![Screenshot (147)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/204b3a1e-98a7-4de7-a522-38996e6f3c03)
+
+- Generic Hash
+
+Set up `/etc/nginx/sites-available/lb-jarkom` sesuai algoritma Generic Hash
+
+```
+upstream myweb {
+	hash $request_uri consistent;
+	server 10.27.3.1 weight=4;
+	server 10.27.3.2 weight=2;
+	server 10.27.3.3 weight=1;
+}
+```
+
+![Screenshot (154)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/c5138e5d-a50a-420c-9c9f-ce33d02cff57)
+> Requests per second : 3613.76 [#/sec]
+
+![Screenshot (153)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/c32a9aab-c68c-4b5b-b638-49a2ce2c0b94)
+
+### Grafik
+
+![Requests per second vs  Algoritma](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/f0e7c6ec-f25c-424c-acbb-f9bdb74ccf14)
+
+## SOAL 9
+
+Dengan menggunakan algoritma Round Robin, lakukan testing dengan menggunakan 3 worker, 2 worker, dan 1 worker sebanyak 100 request dengan 10 request/second, kemudian tambahkan grafiknya pada grimoire. 
+
+Set up `/etc/nginx/sites-available/lb-jarkom` dari nomor sebelumnya kembali ke algoritma round robin. Testing menggunakan ApacheBench dengan command
+
+`ab -n 100 -c 10 http://granz.channel.d11.com/`
+
+- 3 worker
+  
+![Screenshot (164)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/65e3b809-0837-4f2c-8209-197c12f074e2)
+> Requests per second : 810.96 [#/sec]
+
+![Screenshot (163)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/8e27b637-9c9d-46a2-b820-ff6780c54e19)
+
+
+- 2 worker
+  
+Untuk 2 worker, lakukan comment untuk salah satu server pada `upstream myweb` di `/etc/nginx/sites-available/lb-jarkom`
+
+```
+echo ‘upstream myweb {
+	server 10.27.3.1 weight=4;
+	server 10.27.3.2 weight=2;
+	# server 10.27.3.3 weight=1;
+}
+```
+
+![Screenshot (162)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/4bf0bc42-f087-4b1b-859f-70f03581bd09)
+> Requests per second : 649.27 [#/sec]
+
+![Screenshot (161)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/5482e6a1-d587-4205-9e78-50f506fad32b)
+
+
+- 1 worker
+  
+Untuk 1 worker, lakukan comment untuk 2 server pada `upstream myweb` di `/etc/nginx/sites-available/lb-jarkom`
+
+```
+echo ‘upstream myweb {
+	server 10.27.3.1 weight=4;
+	# server 10.27.3.2 weight=2;
+	# server 10.27.3.3 weight=1;
+}
+```
+
+![Screenshot (160)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/15788f81-2a70-48fc-b6a0-fb6669466e65)
+> Requests per second : 711.76 [#/sec]
+
+![Screenshot (159)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/ae0ff2be-e8a2-4c1c-bb9c-e118469d049e)
+
+### Grafik
+
+![Requests per second vs  Worker](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/d5e2534d-7a39-428b-aaae-177a13c6d5b6)
+
+### Laporan Grimoire
+
+Laporan Grimoire yang berisi analisis bisa diakses di link [berikut](https://docs.google.com/document/d/1NGMJFZIG9Cl242Gs3bXUiULFMXhgzZhfRmfS_TW5l4A/edit?usp=sharing).
+**NOTE : Data hasil yang ada di nomor 8 dan 9 lapres ini dengan data di laporan grimoire dibuat oleh anggota yang berbeda sehingga terdapat perbedaan hasil data**
+
 ## SOAL 10
 
 Selanjutnya coba tambahkan konfigurasi autentikasi di LB dengan dengan kombinasi username: “netics” dan password: “ajkyyy”, dengan yyy merupakan kode kelompok. Terakhir simpan file “htpasswd” nya di /etc/nginx/rahasisakita/
