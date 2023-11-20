@@ -817,3 +817,286 @@ untuk melakukan hal tersebut kita perlu konfigutasi tambahan di nginx kita seper
 ### Hasil
 
 ![11](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/130858750/f37c02e9-89cb-4094-8868-d46446e27568)
+
+## SOAL 12
+
+Selanjutnya LB ini hanya boleh diakses oleh client dengan IP [Prefix IP].3.69, [Prefix IP].3.70, [Prefix IP].4.167, dan [Prefix IP].4.168.
+
+Pertama, update konfigurasi pada `EISEN Load Balancer` dengan menambahkan syntax `allow` yang diikuti oleh IP address yang diminta oleh soal dalam `/etc/nginx/sites-available/lb-jarkom`. Prefix IP kelompok kami adalah `10.27` sehingga konfigurasinya adalah sebagai berikut
+
+```
+location / {
+	allow 10.27.3.69;
+	allow 10.27.3.70;
+	allow 10.27.4.167;
+	allow 10.27.4.168;
+	deny all;
+
+    	proxy_pass http://myweb;
+	auth_basic "Adminsitrator’s Area";
+	auth_basic_user_file /etc/nginx/rahasiakita/.htpasswd
+}
+```
+Dengan konfigurasi di atas maka Load Balancer hanya bisa diakses client yang memiliki IP `10.27.3.69`, `10.27.3.70`, `10.27.4.167`, dan `10.27.4.168`.
+
+Karena sebelumnya client bersifat dynamic, dilakukan konfigurasi untuk `fixed address` pada salah satu client yaitu client `Sein` agar bisa melakukan testing. 
+Kirim command `ip a` pada client untuk mendapatkan hardware ethernetnya kemudian tambahkan konfigurasi di `Himmel DHCP Server` seperti di bawah ini
+
+```
+echo ‘host Sein {
+   hardware ethernet 52:6b:5d:bf:85:d1
+   fixed-address 10.27.4.168;
+}’ >> /etc/dhcp/dhcpd.conf.
+```
+
+Tidak lupa untuk menambahkan konfigurasi `network interface` pada client Sein sendiri dengan script berikut
+
+```
+echo '
+auto eth0
+iface eth0 inet dhcp
+hwaddress ether 52:6b:5d:bf:85:d1
+' > /etc/network/interfaces
+```
+
+Karena salah satu IP yang bisa mengakses LB adalah `10.27.4.168` maka pada client `Sein` ini kami buat fixed addressnya menjadi IP tersebut.
+![Screenshot (165)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/0977883c-c996-4b30-a8e7-d50734d8eb3a)
+
+### Hasil
+Setelah IP Client `Sein` sudah berubah menjadi IP yang diperbolehkan untuk mengakses maka kirim perintah menggunakan `lynx`
+
+```
+lynx http://granz.channel.d11.com/
+```
+![Screenshot (167)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/1e2fac2e-7625-4a11-aff4-b0ec68ea451a)
+
+Jika mencoba mengakses `http://granz.channel.d11.com/` menggunakan client dengan IP lain maka akan menampilkan hasil seperti ini
+
+![Screenshot (168)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/7e8c8816-60b0-49a5-99fb-9a1b1f87470f)
+
+## SOAL 13
+
+Semua data yang diperlukan, diatur pada Denken dan harus dapat diakses oleh Frieren, Flamme, dan Fern.
+
+Set up untuk install dependencies dan konfigurasi mysql pada `Denken` 
+
+- DENKEN
+
+```
+echo 'nameserver 10.27.1.3' > /etc/resolv.conf
+apt-get update
+apt-get install mariadb-server -y
+service mysql start
+
+echo '# This group is read both by the client and the server
+# use it for options that affect everything
+[client-server]
+
+# Import all .cnf files from configuration directory
+!includedir /etc/mysql/conf.d/
+!includedir /etc/mysql/mariadb.conf.d/
+
+# Options affecting the MySQL server (mysqld)
+[mysqld]
+skip-networking=0
+skip-bind-address' > /etc/mysql/my.cnf
+```
+Lalu jangan lupa untuk mengubah [bind-address] pada file `/etc/mysql/mariadb.conf.d/50-server.cnf` menjadi `0.0.0.0` kemudian restart database dengan command `service mysql restart`
+
+- LARAVEL WORKERS (FRIEREN, FLAMME, FERN)
+
+Kemudian, atur konfigurasi pada laravel worker (Frieren, Flamme, Fern) dengan script dan konfigurasi sebagai berikut
+
+```
+echo 'nameserver 10.27.1.3' > /etc/resolv.conf
+apt-get update
+apt-get install lynx -y
+apt-get install mariadb-client -y
+# Test connection from worker to database
+# mariadb --host=10.27.2.2 --port=3306   --user=kelompokad11 --password=passwordd11 dbkelompokd11 -e "SHOW DATABASES;"
+apt-get install -y lsb-release ca-certificates apt-transport-https software-properties-common gnupg2
+curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+apt-get update
+apt-get install php8.0-mbstring php8.0-xml php8.0-cli   php8.0-common php8.0-intl php8.0-opcache php8.0-readline php8.0-mysql php8.0-fpm php8.0-curl unzip wget -y
+apt-get install nginx -y
+
+service nginx start
+service php8.0-fpm start
+```
+
+Setelah itu, kembali ke Denken untuk menjalankan perintah di bawah yang akan membuat database dan user
+
+```
+mysql -u root -p
+Enter password: 
+
+CREATE USER 'kelompokd11'@'%' IDENTIFIED BY 'passwordd11';
+CREATE USER 'kelompokd11'@'localhost' IDENTIFIED BY 'passwordd11';
+CREATE DATABASE dbkelompokd11;
+GRANT ALL PRIVILEGES ON *.* TO 'kelompokd11'@'%';
+GRANT ALL PRIVILEGES ON *.* TO 'kelompokd11'@'localhost';
+FLUSH PRIVILEGES;
+```
+![Screenshot (169)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/84d3738b-dc31-4c82-9e3a-43335032c635)
+
+### Testing
+
+Pada salah satu worker yaitu `Frieren` akan menjalankan command di bawah ini untuk testing
+```
+mariadb --host=10.27.2.2 --port=3306 --user=kelompokd11 --password=passwordd11 dbkelompokd11 -e "SHOW DATABASES;"
+```
+
+### Hasil
+
+![Screenshot (170)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/4fb2ee95-353e-453a-8838-e03d3ccc15e3)
+
+
+## SOAL 14 
+
+Frieren, Flamme, dan Fern memiliki Riegel Channel sesuai dengan quest guide berikut. Jangan lupa melakukan instalasi PHP8.0 dan Composer.
+
+Pada semua laravel worker (Frieren, Flamme, Fern) dilakukan set up untuk instalansi composer (instalansi PHP telah dilakukan di nomor sebelumnya)
+
+```
+wget https://getcomposer.org/download/2.0.13/composer.phar
+chmod +x composer.phar
+mv composer.phar /usr/local/bin/composer
+```
+
+Kemudian, jalankan script berikut untuk melakukan `git clone` dari sumber yang diberikan
+
+```
+apt-get install git -y
+cd /var/www && git clone https://github.com/martuafernando/laravel-praktikum-jarkom
+cd /var/www/laravel-praktikum-jarkom && composer update
+```
+Setelah cloning git berhasil dilakukan, lakukan konfigurasi di bawah ini pada `Frieren, Flamme, dan Fern`
+
+- LARAVEL WORKER (FIREREN, FLAMME, FERN)
+```
+cd /var/www/laravel-praktikum-jarkom && cp .env.example .env
+echo 'APP_NAME=Laravel
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://localhost
+
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+
+DB_CONNECTION=mysql
+DB_HOST=10.27.2.2
+DB_PORT=3306
+DB_DATABASE=dbkelompokd11
+DB_USERNAME=kelompokd11
+DB_PASSWORD=passwordd11
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+
+MEMCACHED_HOST=127.0.0.1
+
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=smtp
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=
+AWS_USE_PATH_STYLE_ENDPOINT=false
+
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
+PUSHER_HOST=
+PUSHER_PORT=443
+PUSHER_SCHEME=https
+PUSHER_APP_CLUSTER=mt1
+
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_HOST="${PUSHER_HOST}"
+VITE_PUSHER_PORT="${PUSHER_PORT}"
+VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"' > /var/www/laravel-praktikum-jarkom/.env
+```
+Tambahkan juga beberapa perintah untuk project laravelnya 
+
+```
+cd /var/www/laravel-praktikum-jarkom && php artisan migrate:fresh
+cd /var/www/laravel-praktikum-jarkom && php artisan db:seed --class=AiringsTableSeeder
+cd /var/www/laravel-praktikum-jarkom && php artisan jwt:secret
+cd /var/www/laravel-praktikum-jarkom && php artisan key:generate
+cd /var/www/laravel-praktikum-jarkom && php artisan config:cache
+```
+
+Setelah semuanya berhasil berjalan, lanjut untuk melakukan konfigurasi nginx pada setiap laravel worker seperti di bawah ini
+```
+echo 'server {
+    listen [SELECTED PORT];
+
+    root /var/www/laravel-praktikum-jarkom/public;
+
+    index index.php index.html index.htm;
+    server_name _;
+
+    location / {
+            try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # pass PHP scripts to FastCGI server
+    location ~ \.php$ {
+      include snippets/fastcgi-php.conf;
+      fastcgi_pass unix:/var/run/php/php8.0-fpm.sock;
+    }
+
+    location ~ /\.ht {
+            deny all;
+    }
+
+    error_log /var/log/nginx/implementasi_error.log;
+    access_log /var/log/nginx/implementasi_access.log;
+}' > /etc/nginx/sites-available/laravel-worker
+```
+
+Dimana `[SELECTED PORT]` akan berisi port masing-masing dari worker yang telah ditentukan sebagai berikut
+```
+10.27.4.1:8001; # Frieren
+10.27.4.2:8002; # Flamme
+10.27.4.3:8003; # Fern
+```
+
+Agar konfigurasi `nginx` di atas dapat berjalan dengan baik, lakukan beberapa perintah di bawah ini
+```
+ln -sf /etc/nginx/sites-available/laravel-worker /etc/nginx/sites-enabled/
+chown -R www-data.www-data /var/www/laravel-praktikum-jarkom/storage
+rm -r /etc/nginx/sites-enabled/default
+
+service nginx restart
+service php8.0-fpm restart
+```
+
+### Testing
+Untuk melakukan testing project laravelnya, dapat dilakukan testing menggunakan `lynx` di tiap-tiap worker. Misal, testing dilakukan di worker `Frieren` yang memiliki port `8001` maka commandnya akan seperti ini
+```
+lynx localhost:8001
+```
+
+### Hasil
+
+![Screenshot (172)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/7d528dcc-f309-4745-bf4b-79d469f294a8)
