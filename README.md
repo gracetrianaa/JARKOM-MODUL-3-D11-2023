@@ -1100,3 +1100,234 @@ lynx localhost:8001
 ### Hasil
 
 ![Screenshot (172)](https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/90684914/7d528dcc-f309-4745-bf4b-79d469f294a8)
+
+## Soal 15
+
+Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire untuk POST /auth/register
+
+Jawab :
+
+Pertama kita buat dulu file .json dengan script seperti ini:
+
+```
+echo '
+{
+  "username": "test",
+  "password": "test123"
+}' > register_data.json
+```
+
+setelah itu lakukan syntax ini pada client :
+
+```
+ab -n 100 -c 10 -T 'application/json' -p register_data.json -g register_results.data http://10.27.4.2:8002/api/auth/register
+```
+
+<img width="443" alt="image" src="https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/130858750/5a3a3d18-3f93-4ac5-94d6-2844cd585a57">
+
+## Soal 16
+
+Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire untuk POST /auth/login
+
+Jawab :
+
+Pertama kita buat file .json terlebih dahulu dengan script sebagai berikut:
+
+```
+echo '
+{
+  "username": "test",
+  "password": "test123"
+}' > login_data.json
+```
+
+setelah itu lakukan syntax ini pada client :
+
+```
+ab -n 100 -c 10 -T 'application/json' -p login_data.json -g login_results.data http://10.27.4.2:8002/api/auth/login
+```
+
+<img width="398" alt="image" src="https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/130858750/b4eb11d3-374b-4971-a0ed-c76c47757d75">
+
+## Soal 17
+
+Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire untuk GET /me.
+
+Jawab :
+
+Untuk soal nomor 17 dapat dilakukan dengan menembak endpoint ke worker. Untuk hasil test, untuk contoh response yang dihasilkan adalah sebagai berikut:
+
+<img width="849" alt="image" src="https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/130858750/861e0edd-1c1e-4c18-a762-478487f177fc">
+
+## Soal 18
+
+Untuk soal nomor 18 ini lakukan konfigurasi pada load balancer sebagai berikut :
+
+```
+echo 'upstream worker {
+    server 10.27.4.1:8001;
+    server 10.27.4.2:8002;
+    server 10.27.4.3:8003;
+}
+
+server {
+    listen 80;
+    server_name riegel.canyon.d11.com;
+
+    location / {
+        proxy_pass http://worker;
+    }
+} 
+' > /etc/nginx/sites-available/laravel-worker
+
+ln -s /etc/nginx/sites-available/laravel-worker /etc/nginx/sites-enabled/laravel-worker
+
+service nginx restart
+```
+
+Kemudian untuk testing dapat dilakukan dengan melakukan lynx menuju IP dari load balancernya seperti pada gambar berikut:
+
+<img width="861" alt="image" src="https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/130858750/b818cfb1-232b-473c-a261-b9f12c64f751">
+
+## Soal 19
+
+untuk mengerjakan nomor 19 kita harus mensetup `/etc/php/8.0/fpm/pool.d/www.conf` pada worker kita dengan template seperti ini:
+
+```
+; Start a new pool named 'www'.
+; the variable $pool can be used in any directive and will be replaced by the
+; pool name ('www' here)
+
+[www]
+
+user = www-data
+group = www-data
+listen = /run/php/php8.0-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+php_admin_flag[allow_url_fopen] = off
+
+; Choose how the process manager will control the number of child processes.
+
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2 
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3 
+```
+
+setelah itu lakukan 3 variasi sesuai perintah soal.
+
+### Template 1
+```
+; Start a new pool named 'www'.
+; the variable $pool can be used in any directive and will be replaced by the
+; pool name ('www' here)
+
+[www]
+
+user = www-data
+group = www-data
+listen = /run/php/php8.0-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+php_admin_flag[allow_url_fopen] = off
+
+; Choose how the process manager will control the number of child processes.
+
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2 BISA DIGANTI BEBAS
+pm.min_spare_servers = 1 BISA DIGANTI BEBAS
+pm.max_spare_servers = 3 
+```
+<img width="445" alt="image" src="https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/130858750/ff510a80-0cd1-46fa-b72c-540bd58875bb">
+
+### Template 2
+```
+; Start a new pool named 'www'.
+; the variable $pool can be used in any directive and will be replaced by the
+; pool name ('www' here)
+
+[www]
+
+user = www-data
+group = www-data
+listen = /run/php/php8.0-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+php_admin_flag[allow_url_fopen] = off
+
+; Choose how the process manager will control the number of child processes.
+
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 3 
+pm.min_spare_servers = 2 
+pm.max_spare_servers = 4 
+```
+<img width="458" alt="image" src="https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/130858750/3948eb28-e9f3-4aeb-9455-681b9467d786">
+
+### Template 3
+
+```
+; Start a new pool named 'www'.
+; the variable $pool can be used in any directive and will be replaced by the
+; pool name ('www' here)
+
+[www]
+
+user = www-data
+group = www-data
+listen = /run/php/php8.0-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+php_admin_flag[allow_url_fopen] = off
+
+; Choose how the process manager will control the number of child processes.
+
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 10
+pm.min_spare_servers = 4
+pm.max_spare_servers = 6 
+
+```
+<img width="509" alt="image" src="https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/130858750/e8aa1258-e730-40a9-9268-36d0ae60c224">
+
+## Soal 20
+
+untuk mengerjakan nomor 20 kita harus setup LB kita sebagai berikut :
+
+```
+echo 'upstream worker {
+    least_conn;
+    server 10.27.4.1:8001;
+    server 10.27.4.2:8002;
+    server 10.27.4.3:8003;
+}
+
+server {
+    listen 80;
+    server_name riegel.canyon.d11.com;
+
+    location / {
+        proxy_pass http://worker;
+    }
+}
+' > /etc/nginx/sites-available/laravel-worker
+
+service nginx restart
+```
+
+setelah itu lakukan testing dengan syntax sebagai berikut :
+
+```
+ab -n 100 -c 10 -T 'application/json' -p register_data.json -g register_results.data http://riegel.canyon.d11.com/api/auth/register
+```
+
+<img width="452" alt="image" src="https://github.com/gracetrianaa/JARKOM-MODUL-3-D11-2023/assets/130858750/198ed9f1-93f5-4118-ba8d-324f5534526c">
